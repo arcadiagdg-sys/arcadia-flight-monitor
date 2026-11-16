@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arcadia Flight Monitor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">✈</span>
+      <div>
+        <h1>Arcadia Flight Monitor</h1>
+        <p class="sub">Estado de vuelos y vigilancia de precios</p>
+      </div>
+    </div>
+    <span id="modeBadge" class="badge"></span>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="status" role="tab">Estado de vuelos</button>
+    <button class="tab" data-tab="prices" role="tab">Precios</button>
+    <button class="tab" data-tab="settings" role="tab">Ajustes</button>
+  </nav>
+
+  <main>
+    <!-- ESTADO DE VUELOS -->
+    <section id="tab-status" class="panel active">
+      <form id="flightForm" class="card form-row">
+        <label>Número de vuelo
+          <input name="flight" placeholder="AM 001" required autocomplete="off">
+        </label>
+        <label>Fecha
+          <input name="date" type="date" required>
+        </label>
+        <label>Nota (opcional)
+          <input name="note" placeholder="Ej. viaje Madrid" autocomplete="off">
+        </label>
+        <button type="submit" class="primary">Seguir vuelo</button>
+      </form>
+      <div class="toolbar">
+        <span id="lastRefresh" class="muted"></span>
+        <button id="refreshAll" class="ghost">Actualizar todo</button>
+      </div>
+      <div id="flightList" class="grid"></div>
+    </section>
+
+    <!-- PRECIOS -->
+    <section id="tab-prices" class="panel">
+      <form id="routeForm" class="card form-row">
+        <label>Origen (IATA)
+          <input name="from" placeholder="MEX" maxlength="3" required autocomplete="off">
+        </label>
+        <label>Destino (IATA)
+          <input name="to" placeholder="MAD" maxlength="3" required autocomplete="off">
+        </label>
+        <label>Salida
+          <input name="depart" type="date" required>
+        </label>
+        <label>Regreso (opcional)
+          <input name="return" type="date">
+        </label>
+        <label>Precio objetivo
+          <input name="target" type="number" min="0" step="1" placeholder="15000" required>
+        </label>
+        <label>Moneda
+          <select name="currency">
+            <option value="MXN">MXN – pesos</option>
+            <option value="USD">USD – dólares</option>
+            <option value="EUR">EUR – euros</option>
+          </select>
+        </label>
+        <button type="submit" class="primary">Vigilar ruta</button>
+      </form>
+      <p class="muted small">Registra el precio que veas en la aerolínea o el buscador. La app guarda el historial y te avisa cuando un precio llega a tu objetivo o queda por debajo.</p>
+      <div id="routeList" class="grid"></div>
+    </section>
+
+    <!-- AJUSTES -->
+    <section id="tab-settings" class="panel">
+      <div class="card">
+        <h2>Fuente de datos de vuelos</h2>
+        <label class="radio"><input type="radio" name="provider" value="demo"> Demo: datos simulados, sin conexión externa</label>
+        <label class="radio"><input type="radio" name="provider" value="aviationstack"> AviationStack: datos reales, requiere una clave API</label>
+        <label>Clave API de AviationStack
+          <input id="apiKey" type="password" placeholder="Pega tu clave aquí" autocomplete="off">
+        </label>
+        <p class="muted small">La clave solo se guarda en este navegador. En modo AviationStack, el número de vuelo y la fecha se envían a api.aviationstack.com. El plan gratuito permite unas 100 consultas al mes.</p>
+        <button id="saveSettings" class="primary">Guardar ajustes</button>
+        <span id="settingsMsg" class="muted"></span>
+      </div>
+      <div class="card">
+        <h2>Alertas</h2>
+        <p class="muted small">Activa las notificaciones del navegador para recibir avisos de cambios de estado y de precios objetivo.</p>
+        <button id="enableNotif" class="ghost">Activar notificaciones</button>
+        <span id="notifMsg" class="muted"></span>
+      </div>
+      <div class="card">
+        <h2>Datos</h2>
+        <button id="exportData" class="ghost">Exportar respaldo (JSON)</button>
+        <label class="ghost file-btn">Importar respaldo
+          <input id="importData" type="file" accept="application/json" hidden>
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/providers.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
