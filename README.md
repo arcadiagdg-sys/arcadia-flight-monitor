@@ -10,6 +10,7 @@ Haz doble clic en `index.html`. No requiere instalar nada.
 - **Estado de vuelos:** agrega un número de vuelo y una fecha. Muestra estado, horarios programados, estimados y reales, terminal, puerta y retraso. Si el estado cambia al actualizar, avisa.
 - **Precios:** agrega una ruta (origen, destino, fechas), un precio objetivo y una moneda (MXN, USD o EUR). Registra los precios que veas; la app guarda el historial, dibuja la tendencia y avisa cuando un precio llega al objetivo o queda por debajo. Incluye un enlace a Google Flights con la búsqueda ya armada.
 - **Ajustes:** fuente de datos, notificaciones del navegador y respaldo/importación en JSON.
+- **Actualización automática** (2026-11-17): cada 15, 30, 60 o 120 minutos, solo para vuelos de ayer, hoy y mañana que no han aterrizado ni se cancelaron, y solo con la app abierta. Lleva un contador mensual de consultas a AviationStack y se detiene al llegar al límite configurado (100 por defecto).
 
 ## Fuentes de datos
 | Modo | Qué hace | Envío externo |
@@ -33,5 +34,4 @@ js/app.js         Lógica de pantallas
 
 ## Pendientes / siguientes pasos
 - Consulta automática de precios (requiere un pequeño servidor y una API de tarifas).
-- Actualización automática periódica del estado de vuelos.
 - Migrar a React + Vite y publicar en GitHub (requiere instalar Node.js y git).

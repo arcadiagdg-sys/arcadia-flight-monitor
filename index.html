@@ -91,6 +91,25 @@
         <span id="settingsMsg" class="muted"></span>
       </div>
       <div class="card">
+        <h2>Actualización automática</h2>
+        <label>Actualizar vuelos cada
+          <select id="autoInterval">
+            <option value="0">Desactivada</option>
+            <option value="15">15 minutos</option>
+            <option value="30">30 minutos</option>
+            <option value="60">1 hora</option>
+            <option value="120">2 horas</option>
+          </select>
+        </label>
+        <p class="muted small">Solo se actualizan los vuelos de ayer, hoy y mañana que no han aterrizado ni se cancelaron, y solo mientras la app está abierta.</p>
+        <p class="muted small" id="quotaInfo"></p>
+        <label>Límite mensual de consultas a AviationStack
+          <input id="quotaLimit" type="number" min="1" step="1">
+        </label>
+        <button id="saveAuto" class="primary">Guardar</button>
+        <span id="autoMsg" class="muted"></span>
+      </div>
+      <div class="card">
         <h2>Alertas</h2>
         <p class="muted small">Activa las notificaciones del navegador para recibir avisos de cambios de estado y de precios objetivo.</p>
         <button id="enableNotif" class="ghost">Activar notificaciones</button>
