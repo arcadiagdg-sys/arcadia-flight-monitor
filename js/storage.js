@@ -2,14 +2,17 @@
 const Store = (() => {
   const KEY = 'arcadia-flight-monitor-v1';
   const defaults = () => ({
-    settings: { provider: 'demo', apiKey: '' },
+    settings: { provider: 'demo', apiKey: '', autoInterval: 0, quotaLimit: 100 },
+    usage: { month: '', count: 0 }, // consultas reales a AviationStack en el mes
     flights: [],   // { id, flight, date, note, lastStatus, lastData, updatedAt }
     routes: [],    // { id, from, to, depart, return, target, currency, prices: [{at, price}] , alerted }
   });
 
   let state;
   try {
-    state = Object.assign(defaults(), JSON.parse(localStorage.getItem(KEY) || '{}'));
+    const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+    state = Object.assign(defaults(), saved);
+    state.settings = Object.assign(defaults().settings, saved.settings || {});
   } catch (e) {
     state = defaults();
   }
@@ -24,6 +27,7 @@ const Store = (() => {
 
   function replaceAll(data) {
     state = Object.assign(defaults(), data);
+    state.settings = Object.assign(defaults().settings, data.settings || {});
     save();
   }
 

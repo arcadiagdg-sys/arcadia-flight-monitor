@@ -55,8 +55,30 @@
   } catch (e) {}
 
   // ================= ESTADO DE VUELOS =================
+  // Contador mensual de consultas reales (AviationStack).
+  const monthKey = () => today().slice(0, 7);
+  function usage() {
+    const u = S().usage || (S().usage = { month: '', count: 0 });
+    if (u.month !== monthKey()) { u.month = monthKey(); u.count = 0; }
+    return u;
+  }
+  function renderQuota() {
+    const u = usage();
+    $('#quotaInfo').textContent = `Consultas a AviationStack este mes: ${u.count} de ${S().settings.quotaLimit}.`;
+  }
+
   async function refreshFlight(f, { silent } = {}) {
     const prev = f.lastStatus;
+    if (S().settings.provider === 'aviationstack') {
+      const u = usage();
+      if (u.count >= S().settings.quotaLimit) {
+        f.error = `Se alcanzó el límite de ${S().settings.quotaLimit} consultas de este mes. Puedes cambiarlo en Ajustes.`;
+        f.updatedAt = new Date().toISOString();
+        Store.save();
+        return;
+      }
+      u.count++;
+    }
     try {
       const data = await Providers.lookup(f.flight, f.date, S().settings);
       f.lastData = data;
@@ -164,7 +186,29 @@
     for (const f of flights) await refreshFlight(f);
     $('#lastRefresh').textContent = 'Última actualización: ' + fmtStamp(new Date().toISOString());
     renderFlights();
+    renderQuota();
   });
+
+  // ---------- Actualización automática ----------
+  let autoTimer = null;
+  const isNearToday = d => Math.abs(new Date(d + 'T12:00:00') - new Date(today() + 'T12:00:00')) <= 86400000;
+  const FINAL = ['landed', 'cancelled'];
+
+  async function autoRefresh() {
+    const list = S().flights.filter(f => isNearToday(f.date) && !FINAL.includes(f.lastStatus));
+    if (!list.length) return;
+    for (const f of list) await refreshFlight(f);
+    $('#lastRefresh').textContent = 'Actualización automática: ' + fmtStamp(new Date().toISOString());
+    renderFlights();
+    renderQuota();
+  }
+
+  function scheduleAuto() {
+    clearInterval(autoTimer);
+    autoTimer = null;
+    const min = Number(S().settings.autoInterval) || 0;
+    if (min > 0) autoTimer = setInterval(autoRefresh, min * 60000);
+  }
 
   // ================= PRECIOS =================
   function searchLink(r) {
@@ -271,7 +315,27 @@
     const s = S().settings;
     document.querySelectorAll('input[name="provider"]').forEach(r => { r.checked = r.value === s.provider; });
     $('#apiKey').value = s.apiKey || '';
+    $('#autoInterval').value = String(s.autoInterval || 0);
+    $('#quotaLimit').value = s.quotaLimit;
+    renderQuota();
   }
+
+  $('#saveAuto').addEventListener('click', () => {
+    const autoInterval = Number($('#autoInterval').value);
+    const quotaLimit = Math.max(1, Math.floor(Number($('#quotaLimit').value) || 100));
+    const s = S().settings;
+    // Aviso de consumo: consultas por hora × vuelos activos.
+    const active = S().flights.filter(f => isNearToday(f.date) && !FINAL.includes(f.lastStatus)).length;
+    if (s.provider === 'aviationstack' && autoInterval > 0 && active > 0) {
+      const perDay = Math.round((24 * 60 / autoInterval) * active);
+      if (!confirm(`Con ${active} vuelo(s) activo(s), esto puede usar hasta ${perDay} consultas al día si dejas la app abierta. Tu límite es ${quotaLimit} al mes. ¿Continuar?`)) return;
+    }
+    S().settings = { ...s, autoInterval, quotaLimit };
+    Store.save();
+    scheduleAuto();
+    renderQuota();
+    $('#autoMsg').textContent = autoInterval ? `Se actualizará cada ${autoInterval} min.` : 'Actualización automática desactivada.';
+  });
 
   $('#saveSettings').addEventListener('click', () => {
     const provider = document.querySelector('input[name="provider"]:checked')?.value || 'demo';
@@ -280,7 +344,7 @@
       $('#settingsMsg').textContent = 'Para usar AviationStack necesitas una clave API.';
       return;
     }
-    S().settings = { provider, apiKey };
+    S().settings = { ...S().settings, provider, apiKey };
     Store.save();
     renderBadge();
     $('#settingsMsg').textContent = 'Ajustes guardados.';
@@ -320,6 +384,8 @@
     }
   });
 
-  function renderAll() { renderBadge(); loadSettings(); renderFlights(); renderRoutes(); }
+  function renderAll() { renderBadge(); loadSettings(); renderFlights(); renderRoutes(); scheduleAuto(); }
   renderAll();
+  // Para pruebas desde la consola.
+  window.AFM = { autoRefresh };
 })();
